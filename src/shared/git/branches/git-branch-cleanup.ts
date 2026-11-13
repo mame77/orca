@@ -189,6 +189,7 @@ function sortedFileSet(lines: string[]): string {
 /**
  * Target commits since the merge base that could carry the branch's net patch, newest first; null past the scan limit.
  * Patch IDs hash file names, so a single-parent commit touching other files cannot match: one listing replaces a diff per commit.
+ * Without rename detection both file lists come from trees alone, so a partial clone needs no blobs for them.
  */
 async function listSquashCandidateCommits(
   runGit: GitBranchCleanupExec,
@@ -201,6 +202,7 @@ async function listSquashCandidateCommits(
     '--no-show-signature',
     '--format=%x00%H %P',
     '--name-only',
+    '--no-renames',
     '--ancestry-path',
     `--max-count=${SQUASH_PATCH_SCAN_LIMIT + 1}`,
     `${mergeBase}..${targetOid}`
@@ -279,6 +281,7 @@ export async function branchHasNoUnmergedChangesOnAnyTarget(
     const branchChanges = await readOptionalGitRawStdout(runGit, [
       'diff',
       '--name-only',
+      '--no-renames',
       mergeBase,
       branchRef
     ])
