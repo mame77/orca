@@ -186,11 +186,7 @@ function sortedFileSet(lines: string[]): string {
     .join('\n')
 }
 
-/**
- * Target commits since the merge base that could carry the branch's net patch, newest first; null past the scan limit.
- * Patch IDs hash file names, so a single-parent commit touching other files cannot match: one listing replaces a diff per commit.
- * Without rename detection both file lists come from trees alone, so a partial clone needs no blobs for them.
- */
+/** Patch IDs hash file names, so only commits touching exactly the branch's files can match; null past the scan limit. */
 async function listSquashCandidateCommits(
   runGit: GitBranchCleanupExec,
   targetOid: string,
@@ -215,7 +211,7 @@ async function listSquashCandidateCommits(
   return entries.flatMap((entry) => {
     const [header = '', ...files] = entry.split(/\r?\n/)
     const [commitOid, ...parents] = header.trim().split(' ')
-    // `log` lists no files for merges, so they stay candidates as before.
+    // `log` lists no files for merges, so they stay candidates.
     return commitOid && (parents.length > 1 || sortedFileSet(files) === branchFiles)
       ? [commitOid]
       : []
@@ -230,16 +226,15 @@ async function branchNetPatchMatchesTargetSquashCommit(
   branchChangedFiles: string,
   capabilities: GitCapabilityCache
 ): Promise<boolean> {
+  const commits = await listSquashCandidateCommits(runGit, targetOid, mergeBase, branchChangedFiles)
+  if (!commits?.length) {
+    return false
+  }
   const branchPatchId = await computeStablePatchId(
     runGit,
     await readOptionalGitRawStdout(runGit, ['diff', mergeBase, branchRef])
   )
   if (!branchPatchId) {
-    return false
-  }
-
-  const commits = await listSquashCandidateCommits(runGit, targetOid, mergeBase, branchChangedFiles)
-  if (!commits) {
     return false
   }
 

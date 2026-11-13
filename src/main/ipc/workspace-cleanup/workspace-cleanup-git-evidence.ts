@@ -57,8 +57,8 @@ export async function readWorkspaceCleanupGitEvidence(
   repo: Repo,
   repoRoute: WorkspaceCleanupGitRoute,
   prCache: PRCacheView<PRInfo>,
-  signal?: AbortSignal,
-  repoRefs?: WorkspaceCleanupRepoRefs
+  repoRefs: WorkspaceCleanupRepoRefs,
+  signal?: AbortSignal
 ): Promise<WorkspaceCleanupGitEvidence> {
   const blockers: WorkspaceCleanupBlocker[] = []
   let status: GitStatusResult
@@ -116,7 +116,7 @@ export async function readWorkspaceCleanupGitEvidence(
 
   const upstreamAhead = status.upstreamStatus.hasUpstream ? status.upstreamStatus.ahead : null
   const upstreamBehind = status.upstreamStatus.hasUpstream ? status.upstreamStatus.behind : null
-  const merge = await readWorkspaceCleanupMergeEvidence(worktree, repo, prCache, signal, repoRefs)
+  const merge = await readWorkspaceCleanupMergeEvidence(worktree, repo, prCache, repoRefs, signal)
   // Commits already in the base or a merged review are not at risk, even after a squash rewrote them.
   const headLanded = isWorkspaceCleanupHeadLanded(merge)
   if (!headLanded && upstreamAhead !== null && upstreamAhead > 0) {

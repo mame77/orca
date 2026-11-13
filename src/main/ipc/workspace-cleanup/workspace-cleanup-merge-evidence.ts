@@ -27,8 +27,8 @@ export type WorkspaceCleanupRepoRefs = {
 }
 
 function cleanupGit(cwd: string, signal: AbortSignal | undefined): CleanupGit {
-  return (argv) =>
-    gitExecFileAsync(argv, { cwd, env: offlineGitEnv(), ...(signal ? { signal } : {}) })
+  const env = offlineGitEnv()
+  return (argv) => gitExecFileAsync(argv, { cwd, env, ...(signal ? { signal } : {}) })
 }
 
 /** Runs under the scan's signal, not a row's deadline, so one slow row cannot leave a cancelled answer for the rest. */
@@ -57,8 +57,8 @@ export async function readWorkspaceCleanupMergeEvidence(
   worktree: Worktree,
   repo: Repo,
   prCache: PRCacheView<PRInfo>,
-  signal?: AbortSignal,
-  repoRefs: WorkspaceCleanupRepoRefs = createWorkspaceCleanupRepoRefs(repo, signal)
+  repoRefs: WorkspaceCleanupRepoRefs,
+  signal?: AbortSignal
 ): Promise<WorkspaceCleanupMergeEvidence | undefined> {
   try {
     return await withWorkspaceCleanupTimeout(

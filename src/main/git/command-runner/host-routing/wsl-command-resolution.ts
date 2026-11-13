@@ -18,13 +18,13 @@ import {
 import { translateArgForWsl, translateArgsForWsl } from './wsl-path-translation'
 import { resolveWslInteropSpawnCwd } from '../../../wsl/execution/wsl-interop-spawn-directory'
 import { noteWslDistroLaunched } from '../../../wsl/discovery/wsl-background-distro-gate'
+import { OFFLINE_GIT_ENV } from '../git-environment/git-process-env'
 
 /** Git settings direct WSL reads pass on the command line, so they need no login shell to reach the distro. */
-export const WSL_DIRECT_GIT_FORWARDED_ENV = [
+export const WSL_DIRECT_GIT_FORWARDED_ENV: readonly string[] = [
   'GIT_OPTIONAL_LOCKS',
-  'GIT_NO_LAZY_FETCH',
-  'GIT_ALLOW_PROTOCOL'
-] as const
+  ...Object.keys(OFFLINE_GIT_ENV)
+]
 
 // Carry Git locale pins in the WSL command; these assignment values are shell-safe.
 const GIT_OUTPUT_LOCALE_SHELL_PREFIX = Object.entries(UNTRANSLATED_GIT_OUTPUT_ENV)

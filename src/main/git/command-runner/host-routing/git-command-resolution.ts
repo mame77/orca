@@ -71,7 +71,7 @@ function shouldAttemptWslDirectGit(args: string[], options: GitExecOptions): boo
     !Object.entries(options.env ?? {}).some(
       ([key, value]) =>
         key.startsWith('GIT_') &&
-        !(WSL_DIRECT_GIT_FORWARDED_ENV as readonly string[]).includes(key) &&
+        !WSL_DIRECT_GIT_FORWARDED_ENV.includes(key) &&
         value !== process.env[key]
     )
   )

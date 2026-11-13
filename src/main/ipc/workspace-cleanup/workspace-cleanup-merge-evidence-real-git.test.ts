@@ -12,6 +12,7 @@ import type { Repo } from '../../../shared/repo-types'
 import type { Worktree } from '../../../shared/worktree/types'
 import { getWorkspaceCleanupMergeReasons } from '../../../shared/workspace-cleanup/workspace-cleanup'
 import { readWorkspaceCleanupGitEvidence } from './workspace-cleanup-git-evidence'
+import { createWorkspaceCleanupRepoRefs } from './workspace-cleanup-merge-evidence'
 
 const execFileAsync = promisify(execFile)
 
@@ -54,7 +55,8 @@ async function readEvidence(baseRef?: string, branch = 'feature') {
     worktree,
     repo,
     { kind: 'local', hostId: 'local' },
-    {}
+    {},
+    createWorkspaceCleanupRepoRefs(repo)
   )
   return {
     blockers: evidence.blockers,

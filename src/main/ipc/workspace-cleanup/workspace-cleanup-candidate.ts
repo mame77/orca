@@ -38,7 +38,7 @@ export async function buildWorkspaceCleanupCandidate(args: {
   forceGitCheck: boolean
   findAutomationRun: WorkspaceCleanupAutomationRunLookup
   signal?: AbortSignal
-  repoRefs?: WorkspaceCleanupRepoRefs
+  repoRefs: WorkspaceCleanupRepoRefs
 }): Promise<WorkspaceCleanupCandidate> {
   const { repo, worktree, scannedAt, route, prCache, skipGit, forceGitCheck, signal, repoRefs } =
     args
@@ -67,7 +67,7 @@ export async function buildWorkspaceCleanupCandidate(args: {
 
   const gitEvidence = !shouldReadGit
     ? createEmptyWorkspaceCleanupGitEvidence()
-    : await readWorkspaceCleanupGitEvidence(worktree, repo, route, prCache, signal, repoRefs)
+    : await readWorkspaceCleanupGitEvidence(worktree, repo, route, prCache, repoRefs, signal)
   appendWorkspaceCleanupItems(blockers, gitEvidence.blockers)
   appendWorkspaceCleanupItems(reasons, getWorkspaceCleanupMergeReasons(gitEvidence.merge))
 
