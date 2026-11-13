@@ -7,6 +7,9 @@ import {
 import { GitCapabilityCache } from '../commands/git-capability-cache'
 import { GIT_FETCH_SKIP_AUTO_MAINTENANCE_CONFIG_ARGS } from '../fetch/git-fetch-auto-maintenance'
 
+const SQUASH_SCAN_KEY =
+  'log --no-show-signature --format=%x00%H %P --name-only --ancestry-path --max-count=201 base..target'
+
 function baseProofResponses(
   responses: Partial<Record<string, string | Error>> = {}
 ): GitBranchCleanupExec {
@@ -35,7 +38,8 @@ function baseProofResponses(
         'rev-list --right-only --merges --count target...refs/heads/feature/test': '1\n',
         'merge-base target refs/heads/feature/test': 'base\n',
         'diff base refs/heads/feature/test': 'branch-diff',
-        'rev-list --ancestry-path --max-count=201 base..target': 'squash\n',
+        'diff --name-only base refs/heads/feature/test': 'feature.txt\n',
+        [SQUASH_SCAN_KEY]: '\0squash parent\n\nfeature.txt\n',
         'show --format= squash': 'squash-diff',
         'merge-tree --write-tree squash refs/heads/feature/test': 'squash-tree\n',
         'rev-parse --verify --quiet squash^{tree}': 'squash-tree\n'
@@ -102,10 +106,11 @@ describe('branchHasNoUnmergedChangesOnAnyTarget', () => {
   })
 
   it('preserves when the target squash scan exceeds the cap', async () => {
-    const commits = Array.from({ length: 201 }, (_, index) => `commit-${index}`).join('\n')
-    const runGit = baseProofResponses({
-      'rev-list --ancestry-path --max-count=201 base..target': `${commits}\n`
-    })
+    const commits = Array.from(
+      { length: 201 },
+      (_, index) => `\0commit-${index} parent\n\nfeature.txt\n`
+    ).join('')
+    const runGit = baseProofResponses({ [SQUASH_SCAN_KEY]: commits })
 
     await expect(
       branchHasNoUnmergedChangesOnAnyTarget(

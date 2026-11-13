@@ -11,6 +11,18 @@ export function gitOptionalLocksDisabledEnv(
   }
 }
 
+/** Reads that must never reach a remote: Git 2.44+ skips partial-clone lazy fetches, older Git is refused every transport. */
+export function offlineGitEnv(
+  env: NodeJS.ProcessEnv = process.env,
+  platform: NodeJS.Platform = process.platform
+): NodeJS.ProcessEnv {
+  const next = { ...env, GIT_NO_LAZY_FETCH: '1', GIT_ALLOW_PROTOCOL: 'none' }
+  if (platform === 'win32') {
+    addWslEnvKeys(next, ['GIT_NO_LAZY_FETCH', 'GIT_ALLOW_PROTOCOL'])
+  }
+  return next
+}
+
 /** Pin Git diagnostics to English so parsers work under any user locale. */
 export function untranslatedGitOutputEnv(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   return { ...env, ...UNTRANSLATED_GIT_OUTPUT_ENV }
